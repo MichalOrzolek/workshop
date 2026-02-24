@@ -1,6 +1,9 @@
 from django.contrib import admin
-from .models import Country, LeadSource, Customer
+from .models import Country, LeadSource, Customer, Deal
 
+admin.site.site_header = "Codaro CRM Admin"
+admin.site.site_title = "Codaro CRM Admin Portal"
+admin.site.index_title = "Welcome to Codaro CRM Admin Portal"
 
 @admin.register(Country)
 class CountryAdmin(admin.ModelAdmin):
@@ -49,3 +52,33 @@ class CustomerAdmin(admin.ModelAdmin):
         "lead_source",
         "lead_owner",
     )
+
+
+@admin.register(Deal)
+class DealAdmin(admin.ModelAdmin):  
+    list_display = [
+        "name",
+        "customer",
+        "amount",
+        "close_date",
+        "status",
+    ]
+    
+    search_fields = [
+        "name",
+        "customer__name",
+    ]
+
+    readonly_fields = [
+        "name",
+    ]
+
+    list_filter = [
+        "status",
+    ]
+
+    autocomplete_fields = (
+        "customer",
+    )
+
+    date_hierarchy = "close_date"
