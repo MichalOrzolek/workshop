@@ -41,8 +41,8 @@
       <div class="card-body">
         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
           <div>
-            <h1 class="h4 mb-1">Ważne liczby</h1>
-            <div class="text-body-secondary small">Dashboard zawierający kluczowe metryki CRM</div>
+            <h1 class="h4 mb-1">Important metrics</h1>
+            <div class="text-body-secondary small">Key CRM Dashboard statistics</div>
           </div>
           
         </div>
@@ -56,7 +56,7 @@
           <div class="card-body">
             <div class="d-flex align-items-start justify-content-between">
               <div>
-                <div class="kpi-label">Klienci</div>
+                <div class="kpi-label">Customers</div>
                 <div class="kpi-value">{{ kpis.total_customers }}</div>
               </div>
               <div class="fs-4 text-primary"><i class="bi bi-people"></i></div>
@@ -70,7 +70,7 @@
           <div class="card-body">
             <div class="d-flex align-items-start justify-content-between">
               <div>
-                <div class="kpi-label">Kraje</div>
+                <div class="kpi-label">Countries</div>
                 <div class="kpi-value">{{ kpis.total_countries }}</div>
               </div>
               <div class="fs-4 text-success"><i class="bi bi-globe2"></i></div>
@@ -84,7 +84,7 @@
           <div class="card-body">
             <div class="d-flex align-items-start justify-content-between">
               <div>
-                <div class="kpi-label">Źródła leadów</div>
+                <div class="kpi-label">Lead sources</div>
                 <div class="kpi-value">{{ kpis.total_sources }}</div>
               </div>
               <div class="fs-4 text-warning"><i class="bi bi-diagram-3"></i></div>
@@ -98,9 +98,8 @@
           <div class="card-body">
             <div class="d-flex align-items-start justify-content-between">
               <div>
-                <div class="kpi-label">Bez właściciela</div>
+                <div class="kpi-label">Unassigned</div>
                 <div class="kpi-value">{{ kpis.without_owner }}</div>
-                <div class="small text-body-secondary">Bez źródła: {{ kpis.without_source }}</div>
               </div>
               <div class="fs-4 text-danger"><i class="bi bi-person-x"></i></div>
             </div>
@@ -115,8 +114,8 @@
       <div class="col-12 col-xl-8">
         <div class="card shadow-sm h-100">
           <div class="card-header bg-white">
-            <div class="widget-title">Najnowsze leady – wg źródła</div>
-            <div class="widget-subtitle">Ostatnie {{ day_labels|length }} dni</div>
+            <div class="widget-title">Recent leads – by source</div>
+            <div class="widget-subtitle">Recent {{ day_labels|length }} months</div>
           </div>
 
           <div class="card-body">
@@ -124,7 +123,7 @@
               <table class="table table-sm align-middle heatmap-table mb-0">
                 <thead class="table-light">
                   <tr>
-                    <th class="text-nowrap">Źródło</th>
+                    <th class="text-nowrap">Source</th>
                     {% for d in day_labels %}
                       <th class="text-center">{{ d }}</th>
                     {% endfor %}
@@ -141,7 +140,7 @@
                   {% empty %}
                     <tr>
                       <td colspan="{{ day_labels|length|add:'1' }}" class="text-center text-body-secondary py-4">
-                        Brak danych do heatmapy. Dodaj klientów z lead_source i created_at.
+                        No data.
                       </td>
                     </tr>
                   {% endfor %}
@@ -150,7 +149,7 @@
             </div>
 
             <div class="small text-body-secondary mt-2">
-              Podpowiedź: intensywność koloru skaluje się automatycznie do max wartości w tabeli.
+              Hint: Color intensity scales with quantity.
             </div>
           </div>
         </div>
@@ -160,8 +159,8 @@
       <div class="col-12 col-xl-4">
         <div class="card shadow-sm h-100">
           <div class="card-header bg-white">
-            <div class="widget-title">Klienci per rok</div>
-            <div class="widget-subtitle">Skumulowane wg Top 3 krajów</div>
+            <div class="widget-title">Customer per year</div>
+            <div class="widget-subtitle">Top 3 countries</div>
           </div>
           <div class="card-body">
             <div class="chart-wrap">
@@ -177,8 +176,8 @@
       <div class="col-12 col-lg-4">
         <div class="card shadow-sm h-100">
           <div class="card-header bg-white">
-            <div class="widget-title">Leady wygenerowane</div>
-            <div class="widget-subtitle">Udział źródeł leadów</div>
+            <div class="widget-title">Generated leads</div>
+            <div class="widget-subtitle">Lead source share</div>
           </div>
           <div class="card-body">
             <div class="chart-wrap-sm">
@@ -191,8 +190,8 @@
       <div class="col-12 col-lg-4">
         <div class="card shadow-sm h-100">
           <div class="card-header bg-white">
-            <div class="widget-title">Aktywność ownerów</div>
-            <div class="widget-subtitle">Top właściciele leadów</div>
+            <div class="widget-title">Owner activity</div>
+            <div class="widget-subtitle">Top lead owners</div>
           </div>
           <div class="card-body">
             <div class="chart-wrap-sm">
@@ -205,8 +204,8 @@
       <div class="col-12 col-lg-4">
         <div class="card shadow-sm h-100">
           <div class="card-header bg-white">
-            <div class="widget-title">Udział krajów</div>
-            <div class="widget-subtitle">Top kraje + pozostałe</div>
+            <div class="widget-title">Countries share</div>
+            <div class="widget-subtitle">Top countries + others</div>
           </div>
           <div class="card-body">
             <div class="chart-wrap-sm">
@@ -222,20 +221,20 @@
       <div class="col-12">
         <div class="card shadow-sm">
           <div class="card-header bg-white">
-            <div class="widget-title">Ostatnio dodani klienci</div>
-            <div class="widget-subtitle">Podgląd ostatnich rekordów (zależne od created_at)</div>
+            <div class="widget-title">Recently added customers</div>
+            <div class="widget-subtitle">Recently added records</div>
           </div>
           <div class="card-body p-0">
             <div class="table-responsive">
               <table class="table table-hover table-sm mb-0 align-middle">
                 <thead class="table-light">
                   <tr>
-                    <th>Klient</th>
+                    <th>Customer</th>
                     <th>Email</th>
-                    <th>Kraj</th>
-                    <th>Źródło</th>
+                    <th>Country</th>
+                    <th>Lead source</th>
                     <th>Owner</th>
-                    <th>Utworzono</th>
+                    <th>Created</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -249,7 +248,7 @@
                         {% if c.lead_owner %}
                           {{ c.lead_owner.get_full_name|default:c.lead_owner.username }}
                         {% else %}
-                          Brak
+                          None
                         {% endif %}
                       </td>
                       <td class="text-nowrap">{{ c.created_at|date:"Y-m-d H:i" }}</td>
@@ -257,7 +256,7 @@
                   {% empty %}
                     <tr>
                       <td colspan="6" class="text-center text-body-secondary py-4">
-                        Brak klientów do wyświetlenia. Dodaj kilka rekordów w panelu admina.
+                        No customers
                       </td>
                     </tr>
                   {% endfor %}

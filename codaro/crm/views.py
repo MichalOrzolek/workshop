@@ -1,9 +1,10 @@
 from datetime import timedelta, date, datetime
 import random
+from dateutil.relativedelta import relativedelta
 
 from django.shortcuts import render
 from django.db.models import Count
-from django.db.models.functions import TruncDate, ExtractYear
+from django.db.models.functions import TruncMonth, ExtractYear
 from django.utils import timezone
 from django.contrib.auth.models import User
 
@@ -22,28 +23,35 @@ def home(request):
         "without_source": Customer.objects.filter(lead_source__isnull=True).count(),
     }
 
-    # Heatmap: ostatnie 9 dni (jak na screenie)
-    days_back = 8
-    start_day = today - timedelta(days=days_back)
-    day_list = [start_day + timedelta(days=i) for i in range(days_back + 1)]
-    day_labels = [d.strftime("%d.%m") for d in day_list]  # etykiety kolumn (np. 24.02)
+    # 12 miesięcy wstecz (łącznie z bieżącym)
+    months_back = 11
+    start_month = (today.replace(day=1) - relativedelta(months=months_back))
+
+    # lista pierwszych dni kolejnych miesięcy
+    month_list = [
+        (start_month + relativedelta(months=i))
+        for i in range(months_back + 1)
+    ]
+
+    month_labels = [m.strftime("%m.%y") for m in month_list]
 
     recent_qs = (
-        Customer.objects.filter(created_at__date__gte=start_day, created_at__date__lte=today)
-        .annotate(day=TruncDate("created_at"))
-        .values("lead_source__name", "day")
+        Customer.objects
+        .filter(created_at__date__gte=start_month, created_at__date__lte=today)
+        .annotate(month=TruncMonth("created_at"))
+        .values("lead_source__name", "month")
         .annotate(total=Count("id"))
-        .order_by()  # ważne przy values+annotate
+        .order_by()
     )
 
-    counts_map = {}  # (source_name, day) -> total
+    counts_map = {}  # (source_name, month) -> total
     sources_set = set()
 
     for row in recent_qs:
         source = row["lead_source__name"] or "Brak źródła"
-        day = row["day"]
+        month = row["month"].date().replace(day=1)
         sources_set.add(source)
-        counts_map[(source, day)] = row["total"]
+        counts_map[(source, month)] = row["total"]
 
     sources = sorted([s for s in sources_set if s != "Brak źródła"])
     if "Brak źródła" in sources_set:
@@ -54,7 +62,7 @@ def home(request):
         heatmap_rows.append(
             {
                 "source": source,
-                "counts": [counts_map.get((source, d), 0) for d in day_list],
+                "counts": [counts_map.get((source, m), 0) for m in month_list],
             }
         )
 
@@ -209,7 +217,7 @@ def home(request):
 
     context = {
         "kpis": kpis,
-        "day_labels": day_labels,
+        "day_labels": month_labels,
         "heatmap_rows": heatmap_rows,
         "latest_customers": latest_customers,
         "dashboard": dashboard,
