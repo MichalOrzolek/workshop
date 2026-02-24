@@ -21,6 +21,7 @@
   </style>
 </head>
 <body>
+<<<<<<< HEAD
 <div class="container-fluid py-4">
   <!-- Header with actions -->
   <div class="card shadow-sm mb-4">
@@ -34,6 +35,242 @@
         <button class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Add Widget</button>
       </div>
     </div>
+=======
+  <div class="container-fluid py-4">
+
+    <!-- Header -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+          <div>
+            <h1 class="h4 mb-1">Important metrics</h1>
+            <div class="text-body-secondary small">Key CRM Dashboard statistics</div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+
+    <!-- KPI row -->
+    <div class="row g-3 mb-4">
+      <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card shadow-sm kpi-card">
+          <div class="card-body">
+            <div class="d-flex align-items-start justify-content-between">
+              <div>
+                <div class="kpi-label">Customers</div>
+                <div class="kpi-value">{{ kpis.total_customers }}</div>
+              </div>
+              <div class="fs-4 text-primary"><i class="bi bi-people"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card shadow-sm kpi-card">
+          <div class="card-body">
+            <div class="d-flex align-items-start justify-content-between">
+              <div>
+                <div class="kpi-label">Countries</div>
+                <div class="kpi-value">{{ kpis.total_countries }}</div>
+              </div>
+              <div class="fs-4 text-success"><i class="bi bi-globe2"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card shadow-sm kpi-card">
+          <div class="card-body">
+            <div class="d-flex align-items-start justify-content-between">
+              <div>
+                <div class="kpi-label">Lead sources</div>
+                <div class="kpi-value">{{ kpis.total_sources }}</div>
+              </div>
+              <div class="fs-4 text-warning"><i class="bi bi-diagram-3"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card shadow-sm kpi-card">
+          <div class="card-body">
+            <div class="d-flex align-items-start justify-content-between">
+              <div>
+                <div class="kpi-label">Unassigned</div>
+                <div class="kpi-value">{{ kpis.without_owner }}</div>
+              </div>
+              <div class="fs-4 text-danger"><i class="bi bi-person-x"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main widgets row -->
+    <div class="row g-3">
+      <!-- Heatmap -->
+      <div class="col-12 col-xl-8">
+        <div class="card shadow-sm h-100">
+          <div class="card-header bg-white">
+            <div class="widget-title">Recent leads – by source</div>
+            <div class="widget-subtitle">Recent {{ day_labels|length }} months</div>
+          </div>
+
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-sm align-middle heatmap-table mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th class="text-nowrap">Source</th>
+                    {% for d in day_labels %}
+                      <th class="text-center">{{ d }}</th>
+                    {% endfor %}
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for row in heatmap_rows %}
+                    <tr>
+                      <th class="text-nowrap small">{{ row.source }}</th>
+                      {% for v in row.counts %}
+                        <td class="heat-cell text-center small" data-value="{{ v }}">{{ v }}</td>
+                      {% endfor %}
+                    </tr>
+                  {% empty %}
+                    <tr>
+                      <td colspan="{{ day_labels|length|add:'1' }}" class="text-center text-body-secondary py-4">
+                        No data.
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="small text-body-secondary mt-2">
+              Hint: Color intensity scales with quantity.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stacked bar -->
+      <div class="col-12 col-xl-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-header bg-white">
+            <div class="widget-title">Customer per year</div>
+            <div class="widget-subtitle">Top 3 countries</div>
+          </div>
+          <div class="card-body">
+            <div class="chart-wrap">
+              <canvas id="chartCustomersPerYear"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom widgets -->
+    <div class="row g-3 mt-1">
+      <div class="col-12 col-lg-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-header bg-white">
+            <div class="widget-title">Generated leads</div>
+            <div class="widget-subtitle">Lead source share</div>
+          </div>
+          <div class="card-body">
+            <div class="chart-wrap-sm">
+              <canvas id="chartLeadsBySource"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-lg-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-header bg-white">
+            <div class="widget-title">Owner activity</div>
+            <div class="widget-subtitle">Top lead owners</div>
+          </div>
+          <div class="card-body">
+            <div class="chart-wrap-sm">
+              <canvas id="chartOwners"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-lg-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-header bg-white">
+            <div class="widget-title">Countries share</div>
+            <div class="widget-subtitle">Top countries + others</div>
+          </div>
+          <div class="card-body">
+            <div class="chart-wrap-sm">
+              <canvas id="chartCountryShare"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Latest customers table -->
+    <div class="row g-3 mt-1">
+      <div class="col-12">
+        <div class="card shadow-sm">
+          <div class="card-header bg-white">
+            <div class="widget-title">Recently added customers</div>
+            <div class="widget-subtitle">Recently added records</div>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover table-sm mb-0 align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th>Customer</th>
+                    <th>Email</th>
+                    <th>Country</th>
+                    <th>Lead source</th>
+                    <th>Owner</th>
+                    <th>Created</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for c in latest_customers %}
+                    <tr>
+                      <td class="text-nowrap">{{ c.name }}</td>
+                      <td class="text-nowrap">{{ c.email }}</td>
+                      <td class="text-nowrap">{{ c.country.name }}</td>
+                      <td class="text-nowrap">{{ c.lead_source.name|default:"Brak" }}</td>
+                      <td class="text-nowrap">
+                        {% if c.lead_owner %}
+                          {{ c.lead_owner.get_full_name|default:c.lead_owner.username }}
+                        {% else %}
+                          None
+                        {% endif %}
+                      </td>
+                      <td class="text-nowrap">{{ c.created_at|date:"Y-m-d H:i" }}</td>
+                    </tr>
+                  {% empty %}
+                    <tr>
+                      <td colspan="6" class="text-center text-body-secondary py-4">
+                        No customers
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+>>>>>>> e7f34965e704764ee7217d48bea5451663c47b01
   </div>
 
   <!-- KPI Cards -->
