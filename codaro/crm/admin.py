@@ -59,7 +59,9 @@ class DealAdmin(admin.ModelAdmin):
     list_display = [
         "name",
         "customer",
+        "cost",
         "amount",
+        "margin",
         "close_date",
         "status",
     ]
@@ -71,6 +73,7 @@ class DealAdmin(admin.ModelAdmin):
 
     readonly_fields = [
         "name",
+        "margin",
     ]
 
     list_filter = [
