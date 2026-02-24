@@ -1,104 +1,78 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-from datetime import date
+from datetime import date, datetime
 
 
-class Country(models.Model):
+class RescueTeam(models.Model):
+    name = models.CharField(max_length=255)
+    availability = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name_plural = "Rescue teams"
+
+
+class ReportSource(models.Model):
     name = models.CharField(max_length=255)
 
     def __str__(self):
         return self.name
 
     class Meta:
-        verbose_name_plural = "Countries"
+        verbose_name_plural = "Report sources"
 
 
-class LeadSource(models.Model):
+class Dispatcher(models.Model):
     name = models.CharField(max_length=255)
 
     def __str__(self):
         return self.name
 
     class Meta:
-        verbose_name_plural = "Lead Sources"
+        verbose_name_plural = "Dispatchers"
 
 
-class Customer(models.Model):
-    listastatus = (
+class Report(models.Model):
+    liststatus = (
         ("New", "New"),
         ("Ongoing", "Ongoing"),
-        ("Active", "Active"),
-        ("Inactive", "Inactive"),
-        ("Closed", "Closed"),
-    )
-    name = models.CharField(max_length=255)
-    email = models.EmailField()
-    country = models.ForeignKey(Country, on_delete=models.SET_NULL, blank=True, null=True)
-    lead_source = models.ForeignKey(LeadSource, on_delete=models.SET_NULL, blank=True, null=True)
-    lead_owner = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True)
-    vat_number = models.CharField(max_length=255)
-    lead_status = models.CharField(max_length=255, choices=listastatus, blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-    updated_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        verbose_name_plural = "Customers"
-
-
-class Deal(models.Model):
-    dealstatus = (
-        ("Open", "Open"),
-        ("Ongoing", "Ongoing"),
-        ("Closed", "Closed"),
-        ("Cancelled", "Cancelled"),
-    )
-    customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, blank=True, null=True)
-    name = models.CharField(max_length=255, blank=True, null=True)
-    cost = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    margin = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    close_date = models.DateField(blank=True, null=True)
-    status = models.CharField(max_length=255, choices=dealstatus, default='Open', blank=True, null=True)
-
-    def save(self, *args, **kwargs):
-        if self.close_date:
-            self.status = "Closed"
-        if not self.name:
-            dealid = Deal.objects.all().order_by("-id").first().id if Deal.objects.all().exists() else 0
-            self.name = f"COD/{dealid + 1:03d}/{date.today().year}"
-        if self.cost and self.amount:
-            self.margin = self.amount - self.cost
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        verbose_name_plural = "Deals"
-
-
-class Activity(models.Model):
-    name = models.CharField(max_length=255)
-
-    def __str__(self):
-        return f"{self.name}"
-
-
-class SalesActivity(models.Model):
-    activitystatus = (
-        ("Planned", "Planned"),
-        ("In Progress", "In Progress"),
         ("Success", "Success"),
         ("Failed", "Failed"),
+        ("Cancelled", "Cancelled"),
     )
-    deal = models.ForeignKey(Deal, on_delete=models.SET_NULL, blank=True, null=True)
-    type_activity = models.ForeignKey(Activity, on_delete=models.SET_NULL, blank=True, null=True)
-    status = models.CharField(max_length=255, choices=activitystatus, blank=True, null=True)
-    date = models.DateTimeField(auto_now_add=True)
+    report_number = models.CharField(max_length=255)
+    rescue_team = models.ForeignKey(RescueTeam, on_delete=models.SET_NULL, blank=True, null=True)
+    report_source = models.ForeignKey(ReportSource, on_delete=models.SET_NULL, blank=True, null=True)
+    dispatcher = models.ForeignKey(Dispatcher, on_delete=models.SET_NULL, blank=True, null=True)
+    report_status = models.CharField(max_length=255, choices=liststatus, blank=True, null=True, default='New')
+    created_at = models.DateTimeField(blank=True, null=True)
+    rescue_assigned_at = models.DateTimeField(blank=True, null=True)
+    closed_at = models.DateTimeField(blank=True, null=True)
+    seconds_rescue_team_assigned = models.IntegerField(blank=True, null=True)
+    seconds_closed_from_assign = models.IntegerField(blank=True, null=True)
+    seconds_closed_from_report = models.IntegerField(blank=True, null=True)
+    lat = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
+    lon = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
 
+    def save(self, *args, **kwargs):
+        if not self.created_at:
+            self.created_at = datetime.now()
+        if self.rescue_team and not self.rescue_assigned_at:
+            self.rescue_assigned_at = datetime.now()
+        if self.rescue_team and self.report_status == 'New':
+            self.report_status = 'Ongoing'
+        if self.report_status in ['Success', 'Failed'] and not self.closed_at:
+            self.closed_at = datetime.now()
+        if not self.report_number:
+            reportid = Report.objects.all().order_by("-id").first().id if Report.objects.all().exists() else 0
+            self.report_number = f"GOPR/{reportid + 1:03d}/{date.today().year}"
+        super().save(*args, **kwargs)
+    
     def __str__(self):
-        return f"{self.type_activity} - {self.date}"
+        return self.report_number
+
+    class Meta:
+        verbose_name_plural = "Reports"

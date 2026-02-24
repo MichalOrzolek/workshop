@@ -8,7 +8,7 @@ from django.db.models.functions import TruncMonth, ExtractYear
 from django.utils import timezone
 from django.contrib.auth.models import User
 
-from .models import Country, LeadSource, Customer
+from .models import Report, ReportSource, RescueTeam
 
 
 def home(request):
@@ -16,11 +16,11 @@ def home(request):
 
     # KPI (do top cards)
     kpis = {
-        "total_customers": Customer.objects.count(),
-        "total_countries": Country.objects.count(),
-        "total_sources": LeadSource.objects.count(),
-        "without_owner": Customer.objects.filter(lead_owner__isnull=True).count(),
-        "without_source": Customer.objects.filter(lead_source__isnull=True).count(),
+        "total_reports": Report.objects.count(),
+        "total_countries": RescueTeam.objects.count(),
+        "total_sources": ReportSource.objects.count(),
+        "without_owner": Report.objects.filter(dispatcher__isnull=True).count(),
+        "without_source": Report.objects.filter(report_source__isnull=True).count(),
     }
 
     # 12 miesięcy wstecz (łącznie z bieżącym)
@@ -36,10 +36,10 @@ def home(request):
     month_labels = [m.strftime("%m.%y") for m in month_list]
 
     recent_qs = (
-        Customer.objects
+        Report.objects
         .filter(created_at__date__gte=start_month, created_at__date__lte=today)
         .annotate(month=TruncMonth("created_at"))
-        .values("lead_source__name", "month")
+        .values("report_source__name", "month")
         .annotate(total=Count("id"))
         .order_by()
     )
@@ -48,7 +48,7 @@ def home(request):
     sources_set = set()
 
     for row in recent_qs:
-        source = row["lead_source__name"] or "No data"
+        source = row["report_source__name"] or "No data"
         month = row["month"].date().replace(day=1)
         sources_set.add(source)
         counts_map[(source, month)] = row["total"]
@@ -68,49 +68,49 @@ def home(request):
 
     # Pie: klienci wg źródła leadów
     source_qs = (
-        Customer.objects.values("lead_source__name")
+        Report.objects.values("report_source__name")
         .annotate(total=Count("id"))
         .order_by()
     )
     source_labels = []
     source_data = []
     for row in source_qs:
-        source_labels.append(row["lead_source__name"] or "No data")
+        source_labels.append(row["report_source__name"] or "No data")
         source_data.append(row["total"])
 
-    # Donut: klienci wg krajów (Top N + "Pozostałe")
+    # Donut: klienci wg krajów (Top N + "Other")
     top_n_countries = 6
     top_countries = list(
-        Customer.objects.values("country__name")
+        Report.objects.values("rescue_team__name")
         .annotate(total=Count("id"))
         .order_by("-total")[:top_n_countries]
     )
     top_countries_sum = sum(r["total"] for r in top_countries)
-    other_countries_total = max(kpis["total_customers"] - top_countries_sum, 0)
+    other_countries_total = max(kpis["total_reports"] - top_countries_sum, 0)
 
-    country_labels = [r["country__name"] for r in top_countries]
-    country_data = [r["total"] for r in top_countries]
+    rescue_team_labels = [r["rescue_team__name"] for r in top_countries]
+    rescue_team_data = [r["total"] for r in top_countries]
     if other_countries_total:
-        country_labels.append("Pozostałe")
-        country_data.append(other_countries_total)
+        rescue_team_labels.append("Other")
+        rescue_team_data.append(other_countries_total)
 
-    # Stacked bar: klienci per rok, skumulowane po Top 3 krajach + "Pozostałe"
+    # Stacked bar: klienci per rok, skumulowane po Top 3 krajach + "Other"
     years = [today.year - 2, today.year - 1, today.year]
     min_year_date = date(years[0], 1, 1)
 
-    top3_country_rows = list(
-        Customer.objects.filter(created_at__date__gte=min_year_date)
-        .values("country_id", "country__name")
+    top3_rescue_team_rows = list(
+        Report.objects.filter(created_at__date__gte=min_year_date)
+        .values("rescue_team_id", "rescue_team__name")
         .annotate(total=Count("id"))
         .order_by("-total")[:3]
     )
-    top3_ids = [r["country_id"] for r in top3_country_rows]
-    top3_labels = {r["country_id"]: r["country__name"] for r in top3_country_rows}
+    top3_ids = [r["rescue_team_id"] for r in top3_rescue_team_rows]
+    top3_labels = {r["rescue_team_id"]: r["rescue_team__name"] for r in top3_rescue_team_rows}
 
     # łączna liczba klientów per rok (wszystkie kraje)
     totals_per_year = {y: 0 for y in years}
     totals_qs = (
-        Customer.objects.filter(created_at__date__gte=min_year_date)
+        Report.objects.filter(created_at__date__gte=min_year_date)
         .annotate(year=ExtractYear("created_at"))
         .values("year")
         .annotate(total=Count("id"))
@@ -124,15 +124,15 @@ def home(request):
     # Top3 kraje per rok
     top_per_year = {cid: {y: 0 for y in years} for cid in top3_ids}
     top_year_qs = (
-        Customer.objects.filter(created_at__date__gte=min_year_date, country_id__in=top3_ids)
+        Report.objects.filter(created_at__date__gte=min_year_date, rescue_team_id__in=top3_ids)
         .annotate(year=ExtractYear("created_at"))
-        .values("year", "country_id")
+        .values("year", "rescue_team_id")
         .annotate(total=Count("id"))
         .order_by()
     )
     for row in top_year_qs:
         y = row["year"]
-        cid = row["country_id"]
+        cid = row["rescue_team_id"]
         if y in totals_per_year and cid in top_per_year:
             top_per_year[cid][y] = row["total"]
 
@@ -151,28 +151,28 @@ def home(request):
         others_per_year.append(max(totals_per_year[y] - top_sum_y, 0))
 
     if any(others_per_year):
-        stacked_datasets.append({"label": "Pozostałe", "data": others_per_year})
+        stacked_datasets.append({"label": "Other", "data": others_per_year})
 
     # HBar: top właściciele leadów (liczba klientów)
     owners_qs = list(
-        Customer.objects.values("lead_owner__username", "lead_owner__first_name", "lead_owner__last_name")
+        Report.objects.values("dispatcher__name")
         .annotate(total=Count("id"))
         .order_by("-total")[:5]
     )
     owner_labels = []
     owner_data = []
     for row in owners_qs:
-        if row["lead_owner__username"] is None:
+        if row["dispatcher__name"] is None:
             label = "Brak właściciela"
         else:
-            full = f"{row['lead_owner__first_name'] or ''} {row['lead_owner__last_name'] or ''}".strip()
-            label = full or row["lead_owner__username"]
+            full = row["dispatcher__name"]
+            label = full or row["dispatcher__name"]
         owner_labels.append(label)
         owner_data.append(row["total"])
 
     # tabela: ostatnio dodani klienci
-    latest_customers = (
-        Customer.objects.select_related("country", "lead_source", "lead_owner")
+    latest_Reports = (
+        Report.objects.select_related("rescue_team", "report_source", "dispatcher")
         .order_by("-created_at")[:10]
     )
 
@@ -185,9 +185,9 @@ def home(request):
             "labels": source_labels,
             "data": source_data,
         },
-        "donut_by_country": {
-            "labels": country_labels,
-            "data": country_data,
+        "donut_by_rescue_team": {
+            "labels": rescue_team_labels,
+            "data": rescue_team_data,
         },
         "hbar_by_owner": {
             "labels": owner_labels,
@@ -195,21 +195,21 @@ def home(request):
         },
     }
 
-    statuslist = [
-        'New',
-        'Ongoing',
-        'Active',
-        'Inactive',
-        'Closed',
-    ]
+    # statuslist = [
+    #     'New',
+    #     'Ongoing',
+    #     'Active',
+    #     'Inactive',
+    #     'Closed',
+    # ]
 
     # for i in range(1, 101):
-    #     Customer.objects.create(
+    #     Report.objects.create(
     #         name=f"Lead {i}",
     #         email=f"lead{i}@example.com",
-    #         country=Country.objects.get(id=random.randint(1, 5)),
-    #         lead_source=LeadSource.objects.get(id=random.randint(1, 3)),
-    #         lead_owner=User.objects.get(id=random.randint(1, 3)),
+    #         rescue_team=rescue_team.objects.get(id=random.randint(1, 5)),
+    #         report_source=ReportSource.objects.get(id=random.randint(1, 3)),
+    #         dispatcher=User.objects.get(id=random.randint(1, 3)),
     #         vat_number=f"VAT{1000 + i}",
     #         lead_status=statuslist[random.randint(0, 4)],
     #         created_at=(datetime.today() + timedelta(days=i)).isoformat() + "Z",
@@ -219,7 +219,7 @@ def home(request):
         "kpis": kpis,
         "day_labels": month_labels,
         "heatmap_rows": heatmap_rows,
-        "latest_customers": latest_customers,
+        "latest_Reports": latest_Reports,
         "dashboard": dashboard,
     }
     return render(request, "crm/home.html", context)
