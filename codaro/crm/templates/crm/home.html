@@ -239,7 +239,7 @@
                 <tbody>
                   {% for c in latest_Reports %}
                     <tr>
-                      <td class="text-nowrap">{{ c.name }}</td>
+                      <td class="text-nowrap">{{ c.report_number }}</td>
                       <td class="text-nowrap">{{ c.rescue_team.name }}</td>
                       <td class="text-nowrap">{{ c.report_source.name|default:"Brak" }}</td>
                       <td class="text-nowrap">
