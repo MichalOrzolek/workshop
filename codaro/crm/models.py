@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 
 from datetime import date
 
+
 class Country(models.Model):
     name = models.CharField(max_length=255)
 
@@ -39,6 +40,9 @@ class Customer(models.Model):
     vat_number = models.CharField(max_length=255)
     lead_status = models.CharField(max_length=255, choices=listastatus, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
