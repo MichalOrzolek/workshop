@@ -48,14 +48,14 @@ def home(request):
     sources_set = set()
 
     for row in recent_qs:
-        source = row["lead_source__name"] or "Brak źródła"
+        source = row["lead_source__name"] or "No data"
         month = row["month"].date().replace(day=1)
         sources_set.add(source)
         counts_map[(source, month)] = row["total"]
 
-    sources = sorted([s for s in sources_set if s != "Brak źródła"])
-    if "Brak źródła" in sources_set:
-        sources.append("Brak źródła")
+    sources = sorted([s for s in sources_set if s != "No data"])
+    if "No data" in sources_set:
+        sources.append("No data")
 
     heatmap_rows = []
     for source in sources:
@@ -75,7 +75,7 @@ def home(request):
     source_labels = []
     source_data = []
     for row in source_qs:
-        source_labels.append(row["lead_source__name"] or "Brak źródła")
+        source_labels.append(row["lead_source__name"] or "No data")
         source_data.append(row["total"])
 
     # Donut: klienci wg krajów (Top N + "Pozostałe")
