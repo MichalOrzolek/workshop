@@ -66,8 +66,8 @@ class Deal(models.Model):
         if self.close_date:
             self.status = "Closed"
         if not self.name:
-            dealid = Deal.objects.all().order_by("-id").first() or 1
-            self.name = f"COD/{dealid.id + 1:03d}/{date.today().year}"
+            dealid = Deal.objects.all().order_by("-id").first().id if Deal.objects.all().exists() else 0
+            self.name = f"COD/{dealid + 1:03d}/{date.today().year}"
         if self.cost and self.amount:
             self.margin = self.amount - self.cost
         super().save(*args, **kwargs)
