@@ -1,9 +1,11 @@
-from datetime import timedelta, date
+from datetime import timedelta, date, datetime
+import random
 
 from django.shortcuts import render
 from django.db.models import Count
 from django.db.models.functions import TruncDate, ExtractYear
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 from .models import Country, LeadSource, Customer
 
@@ -184,6 +186,26 @@ def home(request):
             "data": owner_data,
         },
     }
+
+    statuslist = [
+        'New',
+        'Ongoing',
+        'Active',
+        'Inactive',
+        'Closed',
+    ]
+
+    # for i in range(1, 101):
+    #     Customer.objects.create(
+    #         name=f"Lead {i}",
+    #         email=f"lead{i}@example.com",
+    #         country=Country.objects.get(id=random.randint(1, 5)),
+    #         lead_source=LeadSource.objects.get(id=random.randint(1, 3)),
+    #         lead_owner=User.objects.get(id=random.randint(1, 3)),
+    #         vat_number=f"VAT{1000 + i}",
+    #         lead_status=statuslist[random.randint(0, 4)],
+    #         created_at=(datetime.today() + timedelta(days=i)).isoformat() + "Z",
+    #     )
 
     context = {
         "kpis": kpis,

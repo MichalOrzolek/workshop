@@ -1,9 +1,13 @@
 from django.contrib import admin
 from .models import Country, LeadSource, Customer, Deal
 
+from datetime import datetime, timedelta
+import random
+
 admin.site.site_header = "Codaro CRM Admin"
 admin.site.site_title = "Codaro CRM Admin Portal"
 admin.site.index_title = "Welcome to Codaro CRM Admin Portal"
+
 
 @admin.register(Country)
 class CountryAdmin(admin.ModelAdmin):
@@ -35,6 +39,7 @@ class CustomerAdmin(admin.ModelAdmin):
         "country",
         "lead_source",
         "lead_owner",
+        "created_at",
     ]
     
     search_fields = [
@@ -52,6 +57,16 @@ class CustomerAdmin(admin.ModelAdmin):
         "lead_source",
         "lead_owner",
     )
+
+    actions = [
+        'datechange',
+    ]
+
+    def datechange(self, request, queryset):
+        for z in queryset:
+            Customer.objects.filter(id=z.id).update(
+                created_at=datetime.now() - timedelta(days=random.randint(1, 700)),
+            )
 
 
 @admin.register(Deal)
